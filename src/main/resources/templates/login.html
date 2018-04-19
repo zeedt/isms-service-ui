@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="css/smartadmin-skins.min.css" />
     <link rel="stylesheet" href="css/demo.min.css" />
     <link rel="stylesheet" href="css/font-awesome.min.css" />
+    <script src="js/libs/Base64.js" type="text/javascript"></script>
     <!--<script type="text/javascript" src="js/libs/jquery-3.2.1.min.js" />-->
     <!--<script type="text/javascript" src="js/libs/jquery-ui.min.js" />-->
 </head>
@@ -65,7 +66,7 @@
             </div>
             <div class="col-xs-12 col-sm-12 col-md-5 col-lg-4">
                 <div class="well no-padding">
-                    <form method="post" id="login-form" class="smart-form client-form" th:action="@{/loginn}">
+                    <form action="#" id="login-form" class="smart-form client-form">
                         <header>
                             Sign In
                         </header>
@@ -95,7 +96,7 @@
                             </section>
                         </fieldset>
                         <footer>
-                            <input type="submit" class="btn btn-primary" value="sign in" />
+                            <button type="button" class="btn btn-primary" value="sign in" onclick="login()" />
                         </footer>
                     </form>
 
@@ -158,46 +159,70 @@
 <script src="js/app.min.js"></script>
 
 <script>
-    runAllForms();
-
     $(function() {
         // Validation
 
-        // $("#login-form").validate({
-        //   // Rules for form validation
-        //   rules : {
-        //     email : {
-        //       required : true,
-        //       email : true
-        //     },
-        //     password : {
-        //       required : true,
-        //       minlength : 3,
-        //       maxlength : 20
-        //     }
-        //   },
-        //
-        //   // Messages for form validation
-        //   messages : {
-        //     email : {
-        //       required : 'Please enter your email address',
-        //       email : 'Please enter a VALID email address'
-        //     },
-        //     password : {
-        //       required : 'Please enter your password'
-        //     }
-        //   },
-        //
-        //   // Do not change code below
-        //   errorPlacement : function(error, element) {
-        //     error.insertAfter(element.parent());
-        //   }
-        // });
+        $("#login-form").validate({
+          // Rules for form validation
+          rules : {
+            email : {
+              required : true,
+              minlenght : 4,
+              maxlenght : 20
+            },
+            password : {
+              required : true,
+              minlength : 8,
+              maxlength : 20
+            }
+          },
+
+          // Messages for form validation
+          messages : {
+            email : {
+              required : 'Please enter your username',
+            },
+            password : {
+              required : 'Please enter your password'
+            }
+          },
+
+          // Do not change code below
+          errorPlacement : function(error, element) {
+            error.insertAfter(element.parent());
+          }
+        });
     });
 </script>
 
-<!-- Your GOOGLE ANALYTICS CODE Below -->
 <script>
+    function login() {
+
+        var username = $("#username").val();
+        var password = $("#password").val();
+        var base64String = Base64.encode("isms-service:secret");
+
+        $.ajax({
+            type: "POST",
+            beforeSend: function(request) {
+                request.setRequestHeader("Authorization", "Basic " + base64String);
+            },
+            url:"http://127.0.0.1:8011/oauth/token?grant_type=password&username="+username+"&password="+password,
+            contentType: "application/json; charset=utf-8",
+            data : JSON.stringify({username:username,password:password,grant_type:"password"}),
+            async:false,
+            success : function (result) {
+                    console.log("Successfully gotten token " + JSON.stringify(result));
+                    localStorage.setItem("token","Adeola");
+                    // localStorage.
+                    window.location.href = "/";
+            },
+            error : function (error) {
+                console.log("Error " + JSON.stringify(error));
+            }
+        })
+
+    }
 
     var _gaq = _gaq || [];
     _gaq.push(['_setAccount', 'UA-43548732-6']);

@@ -23,3 +23,6 @@
 /dist/
 /nbdist/
 /.nb-gradle/
+
+### Node modules ###
+/src/main/resources/Isms/node_modules
