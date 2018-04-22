@@ -76,8 +76,7 @@ var AppComponent = (function () {
         this.cc = 0;
     }
     AppComponent.prototype.ngOnInit = function () {
-        console.log("globalService " + JSON.stringify(this.globalService.getLogin()));
-        console.log("isUserLoggedIn " + this.isUserLoggedIn);
+        this.globalService.setLoggedInUser(localStorage.getItem("username"));
     };
     __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["D" /* Input */])(),
@@ -157,6 +156,7 @@ var AppModule = (function () {
                         component: __WEBPACK_IMPORTED_MODULE_4__login_login_component__["a" /* LoginComponent */]
                     },
                     { path: 'app', loadChildren: './routing-module#AppRouting' },
+                    { path: '', redirectTo: '/app/dashboard', pathMatch: 'full' },
                 ], { useHash: true })
             ],
             providers: [__WEBPACK_IMPORTED_MODULE_6__global_service__["a" /* GlobalService */], __WEBPACK_IMPORTED_MODULE_8__auth_guard_service__["a" /* AuthGuardService */], __WEBPACK_IMPORTED_MODULE_11__services_loginservices_login_service__["a" /* LoginService */], {
@@ -239,6 +239,7 @@ module.exports = "dashboard works!\n\n"
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return DashboardComponent; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__("../../../core/esm5/core.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__global_service__ = __webpack_require__("../../../../../src/app/global.service.ts");
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -249,10 +250,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 
+
 var DashboardComponent = (function () {
-    function DashboardComponent() {
+    function DashboardComponent(globalService) {
+        this.globalService = globalService;
     }
     DashboardComponent.prototype.ngOnInit = function () {
+        this.globalService.setPageTitle("Dashboard");
     };
     DashboardComponent = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["n" /* Component */])({
@@ -260,7 +264,7 @@ var DashboardComponent = (function () {
             template: __webpack_require__("../../../../../src/app/dashboard/dashboard.component.html"),
             styles: [__webpack_require__("../../../../../src/app/dashboard/dashboard.component.css")]
         }),
-        __metadata("design:paramtypes", [])
+        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1__global_service__["a" /* GlobalService */]])
     ], DashboardComponent);
     return DashboardComponent;
 }());
@@ -337,6 +341,8 @@ var FirstloadComponent = (function () {
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return GlobalService; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__("../../../core/esm5/core.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_rxjs_BehaviorSubject__ = __webpack_require__("../../../../rxjs/_esm5/BehaviorSubject.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__angular_common_http__ = __webpack_require__("../../../common/esm5/http.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3_rxjs_operators__ = __webpack_require__("../../../../rxjs/_esm5/operators.js");
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -348,19 +354,83 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 
 
+
+
 var GlobalService = (function () {
-    function GlobalService() {
+    function GlobalService(httpClient) {
+        this.httpClient = httpClient;
         this.login = new __WEBPACK_IMPORTED_MODULE_1_rxjs_BehaviorSubject__["a" /* BehaviorSubject */](false);
+        this.userManagementUrl = "http://localhost:8011";
+        this.ismsServiceUrl = "http://localhost:7011";
+        this._pageTitle = "Dashboard";
+        this.authorities = [];
     }
+    GlobalService.prototype.setAuthorities = function (authorities) {
+        this.authorities = authorities;
+    };
+    GlobalService.prototype.addAuthority = function (authority) {
+        this.authorities.push(authority);
+    };
+    GlobalService.prototype.getAuthorities = function () {
+        return this.authorities;
+    };
     GlobalService.prototype.getLogin = function () {
         return this.login.asObservable();
     };
     GlobalService.prototype.setLogin = function (val) {
         this.login.next(val);
     };
+    GlobalService.prototype.getpageTitle = function () {
+        return this._pageTitle;
+    };
+    GlobalService.prototype.setPageTitle = function (value) {
+        this._pageTitle = value;
+    };
+    GlobalService.prototype.getLoggedInUser = function () {
+        return this._loggedInUser;
+    };
+    GlobalService.prototype.setLoggedInUser = function (value) {
+        this._loggedInUser = value;
+    };
+    GlobalService.prototype.getUSerManagementUrl = function () {
+        return this.userManagementUrl;
+    };
+    GlobalService.prototype.getIsmsServiceUrl = function () {
+        return this.ismsServiceUrl;
+    };
+    GlobalService.prototype.getHttpOptions = function () {
+        var httpOptions = {
+            headers: new __WEBPACK_IMPORTED_MODULE_2__angular_common_http__["c" /* HttpHeaders */]({
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem("isms_access_token")
+            })
+        };
+        return httpOptions;
+    };
+    GlobalService.prototype.makeGetApiCall = function (url, requestData, successHandler, errorHandler) {
+        this.httpClient.get(url, this.getHttpOptions()).pipe(Object(__WEBPACK_IMPORTED_MODULE_3_rxjs_operators__["a" /* tap */])(function (data) {
+            console.log("Data gotten is " + JSON.stringify(data));
+            successHandler(data);
+        }, function (error) {
+            console.log("Error gotten is " + JSON.stringify(error));
+            errorHandler(error);
+        }))
+            .subscribe(function (result) {
+            console.log("Result is " + JSON.stringify(result));
+        });
+    };
+    GlobalService.prototype.makePostApiCall = function (url, requestData, successHandler, errorHandler) {
+        this.httpClient.post(url, requestData, this.getHttpOptions()).pipe(Object(__WEBPACK_IMPORTED_MODULE_3_rxjs_operators__["a" /* tap */])(function (data) {
+            successHandler(data);
+        }, function (error) {
+            errorHandler(error);
+        }))
+            .subscribe(function (result) {
+        });
+    };
     GlobalService = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["A" /* Injectable */])(),
-        __metadata("design:paramtypes", [])
+        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_2__angular_common_http__["a" /* HttpClient */]])
     ], GlobalService);
     return GlobalService;
 }());
@@ -377,7 +447,7 @@ exports = module.exports = __webpack_require__("../../../../css-loader/lib/css-b
 
 
 // module
-exports.push([module.i, ".just-padding {\n  padding: 15px;\n  border: 0px !important;\n}\n\n.list-group.list-group-root {\n  padding: 0;\n  overflow: hidden;\n}\n\n.list-group.list-group-root .list-group {\n  margin-bottom: 0;\n}\n\n.list-group.list-group-root .list-group-item {\n  border-radius: 0;\n  border-width: 1px 0 0 0;\n}\n\n.list-group.list-group-root > .list-group-item:first-child {\n  border-top-width: 0;\n}\n\n.list-group.list-group-root > .list-group > .list-group-item {\n  padding-left: 30px;\n}\n\n.list-group.list-group-root > .list-group > .list-group > .list-group-item {\n  padding-left: 45px;\n}\n\n.list-group-item .glyphicon {\n  margin-right: 5px;\n}\n.list-group-item {\n  background-color: #3a3633 !important;\n  color: #fffff0 !important;\n  border: 0px !important;\n}\n\n.list-group {\n  border: 0px !important;\n}\n\n.list-group-root {\n  border: 0px !important;\n}\n.well {\n  border: 0px !important;\n}\n\n/*a .list-group-item {*/\n  /*color: #ffffff;*/\n/*}*/\n", ""]);
+exports.push([module.i, ".just-padding {\n  padding: 15px;\n  border: 0px !important;\n}\n\n.list-group.list-group-root {\n  padding: 0;\n  overflow: hidden;\n}\n\n.list-group.list-group-root .list-group {\n  margin-bottom: 0;\n}\n\n.list-group.list-group-root .list-group-item {\n  border-radius: 0;\n  border-width: 1px 0 0 0;\n}\n\n.list-group.list-group-root > .list-group-item:first-child {\n  border-top-width: 0;\n}\n\n.list-group.list-group-root > .list-group > .list-group-item {\n  padding-left: 30px;\n}\n\n.list-group.list-group-root > .list-group > .list-group > .list-group-item {\n  padding-left: 45px;\n}\n\n.list-group-item .glyphicon {\n  margin-right: 5px;\n}\n.list-group-item {\n  background-color: #3a3633 !important;\n  color: #fffff0 !important;\n  border: 0px !important;\n}\n\n.list-group {\n  border: 0px !important;\n}\n\n.list-group-root {\n  border: 0px !important;\n}\n.well {\n  border: 0px !important;\n}\n.panelTitle {\n  padding: 10px;\n}\n\n/*a .list-group-item {*/\n  /*color: #ffffff;*/\n/*}*/\n", ""]);
 
 // exports
 
@@ -390,7 +460,7 @@ module.exports = module.exports.toString();
 /***/ "../../../../../src/app/home/home.component.html":
 /***/ (function(module, exports) {
 
-module.exports = "<!--The content below is only a placeholder and can be replaced.-->\n<!--<div style=\"text-align:center\">-->\n<!--<h1>-->\n<!--Welcome to {{ title }}!-->\n<!--</h1>-->\n<!--</div>-->\n<!--<h2>Here are some links to help you start: </h2>-->\n<!--<h1 class=\"col-md-12\" style=\"color: red\">What's up dudes {{e}}}</h1>-->\n<!--\n\nTABLE OF CONTENTS.\n\nUse search to find needed section.\n\n===================================================================\n\n|  01. #CSS Links                |  all CSS links and file paths  |\n|  02. #FAVICONS                 |  Favicon links and file paths  |\n|  03. #GOOGLE FONT              |  Google font link              |\n|  04. #APP SCREEN / ICONS       |  app icons, screen backdrops   |\n|  05. #BODY                     |  body tag                      |\n|  06. #HEADER                   |  header tag                    |\n|  07. #PROJECTS                 |  project lists                 |\n|  08. #TOGGLE LAYOUT BUTTONS    |  layout buttons and actions    |\n|  09. #MOBILE                   |  mobile view dropdown          |\n|  10. #SEARCH                   |  search field                  |\n|  11. #NAVIGATION               |  left panel & navigation       |\n|  12. #MAIN PANEL               |  main panel                    |\n|  13. #MAIN CONTENT             |  content holder                |\n|  14. #PAGE FOOTER              |  page footer                   |\n|  15. #SHORTCUT AREA            |  dropdown shortcuts area       |\n|  16. #PLUGINS                  |  all scripts and plugins       |\n\n===================================================================\n\n-->\n\n<!-- #BODY -->\n<!-- Possible Classes\n\n* 'smart-style-{SKIN#}'\n* 'smart-rtl'         - Switch theme mode to RTL\n* 'menu-on-top'       - Switch to top navigation (no DOM change required)\n* 'no-menu'\t\t\t  - Hides the menu completely\n* 'hidden-menu'       - Hides the main menu but still accessable by hovering over left edge\n* 'fixed-header'      - Fixes the header\n* 'fixed-navigation'  - Fixes the main menu\n* 'fixed-ribbon'      - Fixes breadcrumb\n* 'fixed-page-footer' - Fixes footer\n* 'container'         - boxed layout mode (non-responsive: will not work with fixed-navigation & fixed-ribbon)\n-->\n<!-- #HEADER -->\n<header id=\"header\">\n<div id=\"logo-group\">\n\n<!-- PLACE YOUR LOGO HERE -->\n<span id=\"logo\"> <img src=\"./../../assets/img/logo.png\" alt=\"SmartAdmin\"> </span>\n<!-- END LOGO PLACEHOLDER -->\n\n<!-- Note: The activity badge color changes when clicked and resets the number to 0\nSuggestion: You may want to set a flag when this happens to tick off all checked messages / notifications -->\n<span id=\"activity\" class=\"activity-dropdown\"> <i class=\"fa fa-user\"></i> <b class=\"badge\"> 21 </b> </span>\n\n<!-- AJAX-DROPDOWN : control this dropdown height, look and feel from the LESS variable file -->\n<div class=\"ajax-dropdown\">\n\n<!-- the ID links are fetched via AJAX to the ajax container \"ajax-notifications\" -->\n<div class=\"btn-group btn-group-justified\" data-toggle=\"buttons\">\n<label class=\"btn btn-default\">\n<input type=\"radio\" name=\"activity\" id=\"./../../assets/ajax/error404.html\">\nMsgs (14) </label>\n<label class=\"btn btn-default\">\n<input type=\"radio\" name=\"activity\" id=\"./../../assets/ajax/error500.html\">\nnotify (3) </label>\n<label class=\"btn btn-default\">\n<input type=\"radio\" name=\"activity\" id=\"./../../assets/ajax/gallery.html\">\nTasks (4) </label>\n</div>\n\n<!-- notification content -->\n<div class=\"ajax-notifications custom-scroll\">\n\n<div class=\"alert alert-transparent\">\n<h4>Click a button to show messages here</h4>\nThis blank page message helps protect your privacy, or you can show the first message here automatically.\n</div>\n\n<i class=\"fa fa-lock fa-4x fa-border\"></i>\n\n</div>\n<!-- end notification content -->\n\n<!-- footer: refresh area -->\n<span> Last updated on: 12/12/2013 9:43AM\n<button type=\"button\" data-loading-text=\"<i class='fa fa-refresh fa-spin'></i> Loading...\" class=\"btn btn-xs btn-default pull-right\">\n<i class=\"fa fa-refresh\"></i>\n</button> </span>\n<!-- end footer -->\n\n</div>\n<!-- END AJAX-DROPDOWN -->\n</div>\n\n<!-- #PROJECTS: projects dropdown -->\n<div class=\"project-context hidden-xs\">\n\n<span class=\"label\">Projects:</span>\n<span class=\"project-selector dropdown-toggle\" data-toggle=\"dropdown\">Recent projects <i class=\"fa fa-angle-down\"></i></span>\n\n<!-- Suggestion: populate this list with fetch and push technique -->\n<ul class=\"dropdown-menu\">\n<li>\n<a href=\"javascript:void(0);\">Online e-merchant management system - attaching integration with the iOS</a>\n</li>\n<li>\n<a href=\"javascript:void(0);\">Notes on pipeline upgradee</a>\n</li>\n<li>\n<a href=\"javascript:void(0);\">Assesment Report for merchant account</a>\n</li>\n<li class=\"divider\"></li>\n<li>\n<a href=\"javascript:void(0);\"><i class=\"fa fa-power-off\"></i> Clear</a>\n</li>\n</ul>\n<!-- end dropdown-menu-->\n\n</div>\n<!-- end projects dropdown -->\n\n<!-- #TOGGLE LAYOUT BUTTONS -->\n<!-- pulled right: nav area -->\n<div class=\"pull-right\">\n\n<!-- collapse menu button -->\n<div id=\"hide-menu\" class=\"btn-header pull-right\">\n<span> <a data-action=\"toggleMenu\" title=\"Collapse Menu\"><i class=\"fa fa-reorder\"></i></a> </span>\n</div>\n<!-- end collapse menu -->\n\n<!-- #MOBILE -->\n<!-- Top menu profile link : this shows only when top menu is active -->\n<ul id=\"mobile-profile-img\" class=\"header-dropdown-list hidden-xs padding-5\">\n<li class=\"\">\n<a href=\"#\" class=\"dropdown-toggle no-margin userdropdown\" data-toggle=\"dropdown\">\n<img src=\"./../../assets/img/avatars/sunny.png\" alt=\"John Doe\" class=\"online\" />\n</a>\n<ul class=\"dropdown-menu pull-right\">\n<li>\n<a href=\"javascript:void(0);\" class=\"padding-10 padding-top-0 padding-bottom-0\"><i class=\"fa fa-cog\"></i> Setting</a>\n</li>\n<li class=\"divider\"></li>\n<li>\n<a href=\"#./../../assets/ajax/profile.html\" class=\"padding-10 padding-top-0 padding-bottom-0\"> <i class=\"fa fa-user\"></i> <u>P</u>rofile</a>\n</li>\n<li class=\"divider\"></li>\n<li>\n<a href=\"javascript:void(0);\" class=\"padding-10 padding-top-0 padding-bottom-0\" data-action=\"toggleShortcut\"><i class=\"fa fa-arrow-down\"></i> <u>S</u>hortcut</a>\n</li>\n<li class=\"divider\"></li>\n<li>\n<a href=\"javascript:void(0);\" class=\"padding-10 padding-top-0 padding-bottom-0\" data-action=\"launchFullscreen\"><i class=\"fa fa-arrows-alt\"></i> Full <u>S</u>creen</a>\n</li>\n<li class=\"divider\"></li>\n<li>\n<a href=\"login.html\" class=\"padding-10 padding-top-5 padding-bottom-5\" data-action=\"userLogout\"><i class=\"fa fa-sign-out fa-lg\"></i> <strong><u>L</u>ogout</strong></a>\n</li>\n</ul>\n</li>\n</ul>\n\n<!-- logout button -->\n<div id=\"logout\" class=\"btn-header transparent pull-right\">\n<span> <a href=\"login.html\" title=\"Sign Out\" data-action=\"userLogout\" data-logout-msg=\"You can improve your security further after logging out by closing this opened browser\"><i class=\"fa fa-sign-out\"></i></a> </span>\n</div>\n<!-- end logout button -->\n\n<!-- search mobile button (this is hidden till mobile view port) -->\n<div id=\"search-mobile\" class=\"btn-header transparent pull-right\">\n<span> <a href=\"javascript:void(0)\" title=\"Search\"><i class=\"fa fa-search\"></i></a> </span>\n</div>\n<!-- end search mobile button -->\n\n<!-- #SEARCH -->\n<!-- input: search field -->\n<!--<form action=\"#./../../assets/ajax/search.html\" class=\"header-search pull-right\">-->\n<!--<input id=\"search-fld\" type=\"text\" name=\"param\" placeholder=\"Find reports and more\">-->\n<!--<button type=\"submit\">-->\n<!--<i class=\"fa fa-search\"></i>-->\n<!--</button>-->\n<!--<a href=\"javascript:void(0);\" id=\"cancel-search-js\" title=\"Cancel Search\"><i class=\"fa fa-times\"></i></a>-->\n<!--</form>-->\n<!-- end input: search field -->\n\n<!-- fullscreen button -->\n<div id=\"fullscreen\" class=\"btn-header transparent pull-right\">\n<span> <a href=\"javascript:void(0);\" data-action=\"launchFullscreen\" title=\"Full Screen\"><i class=\"fa fa-arrows-alt\"></i></a> </span>\n</div>\n<!-- end fullscreen button -->\n\n</div>\n<!-- end pulled right: nav area -->\n\n</header>\n<!-- END HEADER -->\n\n<!-- #NAVIGATION -->\n<!-- Left panel : Navigation area -->\n<!-- Note: This width of the aside area can be adjusted through LESS/SASS variables -->\n<aside id=\"left-panel\">\n\n<!-- User info -->\n<div class=\"login-info\">\n<span> <!-- User image size is adjusted inside CSS, it should stay as is -->\n\n<a href=\"javascript:void(0);\" id=\"show-shortcut\" data-action=\"toggleShortcut\">\n<img src=\"./../../assets/img/avatars/sunny.png\" alt=\"me\" class=\"online\" />\n<span>\njohn.doe\n</span>\n<i class=\"fa fa-angle-down\"></i>\n</a>\n\n</span>\n</div>\n<!-- end user info -->\n\n<!-- NAVIGATION : This navigation is also responsive\n\nTo make this navigation dynamic please make sure to link the node\n(the reference to the nav > ul) after page load. Or the navigation\nwill not initialize.\n-->\n  <div class=\"just-padding\">\n\n    <div class=\"list-group list-group-root\">\n\n      <a href=\"#item-1\" class=\"list-group-item\" data-toggle=\"collapse\">\n        <i class=\"fa fa-user\"></i><span class=\"menu-item-parent\">&nbsp;&nbsp;Item 1</span>\n      </a>\n      <div class=\"list-group collapse\" id=\"item-1\">\n\n        <a routerLink=\"/app/dashboard/show\" routerLinkActive=\"active\" class=\"list-group-item\">show url</a>\n        <a routerLink=\"/app/dashboard/performance\" routerLinkActive=\"active\" class=\"list-group-item\">performance url</a>\n\n      </div>\n\n    </div>\n\n  </div>\n<a href=\"#./../../assets/ajax/difver.html\" class=\"btn btn-primary nav-demo-btn\"><i class=\"fa fa-info-circle\"></i> SmartAdmin Package (187 MB)</a>\n\n\n\n<span class=\"minifyme\" data-action=\"minifyMenu\"> <i class=\"fa fa-arrow-circle-left hit\"></i> </span>\n\n</aside>\n<!-- END NAVIGATION -->\n\n<!-- #MAIN PANEL -->\n<div id=\"main\" role=\"main\">\n\n<!-- RIBBON -->\n<div id=\"ribbon\">\n\n<span class=\"ribbon-button-alignment\">\n<span id=\"refresh\" class=\"btn btn-ribbon\" data-action=\"resetWidgets\" data-title=\"refresh\" rel=\"tooltip\" data-placement=\"bottom\" data-original-title=\"<i class='text-warning fa fa-warning'></i> Warning! This will reset all your widget settings.\" data-html=\"true\" data-reset-msg=\"Would you like to RESET all your saved widgets and clear LocalStorage?\"><i class=\"fa fa-refresh\"></i></span>\n</span>\n\n<!-- breadcrumb -->\n<ol class=\"breadcrumb\">\n<!-- This is auto generated -->\n</ol>\n<!-- end breadcrumb -->\n\n<!-- You can also add more buttons to the\nribbon for further usability\n\nExample below:\n\n<span class=\"ribbon-button-alignment pull-right\" style=\"margin-right:25px\">\n<a href=\"#\" id=\"search\" class=\"btn btn-ribbon hidden-xs\" data-title=\"search\"><i class=\"fa fa-grid\"></i> Change Grid</a>\n<span id=\"add\" class=\"btn btn-ribbon hidden-xs\" data-title=\"add\"><i class=\"fa fa-plus\"></i> Add</span>\n<button id=\"search\" class=\"btn btn-ribbon\" data-title=\"search\"><i class=\"fa fa-search\"></i> <span class=\"hidden-mobile\">Search</span></button>\n</span> -->\n\n</div>\n<!-- END RIBBON -->\n\n<!-- #MAIN CONTENT -->\n<div id=\"content\">\n\n<router-outlet></router-outlet>\n\n</div>\n\n<!-- END #MAIN CONTENT -->\n\n</div>\n<!-- END #MAIN PANEL -->\n\n<!-- #PAGE FOOTER -->\n<div class=\"page-footer\">\n<div class=\"row\">\n<div class=\"col-xs-12 col-sm-6\">\n<span class=\"txt-color-white\">SmartAdmin 1.9.0 <span class=\"hidden-xs\"> - Web Application Framework</span> © 2017-2019</span>\n</div>\n\n<div class=\"col-xs-6 col-sm-6 text-right hidden-xs\">\n<div class=\"txt-color-white inline-block\">\n<i class=\"txt-color-blueLight hidden-mobile\">Last account activity <i class=\"fa fa-clock-o\"></i> <strong>52 mins ago &nbsp;</strong> </i>\n<div class=\"btn-group dropup\">\n<button class=\"btn btn-xs dropdown-toggle bg-color-blue txt-color-white\" data-toggle=\"dropdown\">\n<i class=\"fa fa-link\"></i> <span class=\"caret\"></span>\n</button>\n<ul class=\"dropdown-menu pull-right text-left\">\n<li>\n<div class=\"padding-5\">\n<p class=\"txt-color-darken font-sm no-margin\">Download Progress</p>\n<div class=\"progress progress-micro no-margin\">\n<div class=\"progress-bar progress-bar-success\" style=\"width: 50%;\"></div>\n</div>\n</div>\n</li>\n<li class=\"divider\"></li>\n<li>\n<div class=\"padding-5\">\n<p class=\"txt-color-darken font-sm no-margin\">Server Load</p>\n<div class=\"progress progress-micro no-margin\">\n<div class=\"progress-bar progress-bar-success\" style=\"width: 20%;\"></div>\n</div>\n</div>\n</li>\n<li class=\"divider\"></li>\n<li >\n<div class=\"padding-5\">\n<p class=\"txt-color-darken font-sm no-margin\">Memory Load <span class=\"text-danger\">*critical*</span></p>\n<div class=\"progress progress-micro no-margin\">\n<div class=\"progress-bar progress-bar-danger\" style=\"width: 70%;\"></div>\n</div>\n</div>\n</li>\n<li class=\"divider\"></li>\n<li>\n<div class=\"padding-5\">\n<button class=\"btn btn-block btn-default\">refresh</button>\n</div>\n</li>\n</ul>\n</div>\n<!-- end btn-group-->\n</div>\n<!-- end div-->\n</div>\n<!-- end col -->\n</div>\n<!-- end row -->\n</div>\n<!-- END FOOTER -->\n\n<!-- #SHORTCUT AREA : With large tiles (activated via clicking user name tag)\nNote: These tiles are completely responsive, you can add as many as you like -->\n<div id=\"shortcut\">\n<ul>\n<li>\n<a href=\"#./../../assets/ajax/inbox.html\" class=\"jarvismetro-tile big-cubes bg-color-blue\"> <span class=\"iconbox\"> <i class=\"fa fa-envelope fa-4x\"></i> <span>Mail <span class=\"label pull-right bg-color-darken\">14</span></span> </span> </a>\n</li>\n<li>\n<a href=\"#./../../assets/ajax/calendar.html\" class=\"jarvismetro-tile big-cubes bg-color-orangeDark\"> <span class=\"iconbox\"> <i class=\"fa fa-calendar fa-4x\"></i> <span>Calendar</span> </span> </a>\n</li>\n<li>\n<a href=\"#./../../assets/ajax/gmap-xml.html\" class=\"jarvismetro-tile big-cubes bg-color-purple\"> <span class=\"iconbox\"> <i class=\"fa fa-map-marker fa-4x\"></i> <span>Maps</span> </span> </a>\n</li>\n<li>\n<a href=\"#./../../assets/ajax/invoice.html\" class=\"jarvismetro-tile big-cubes bg-color-blueDark\"> <span class=\"iconbox\"> <i class=\"fa fa-book fa-4x\"></i> <span>Invoice <span class=\"label pull-right bg-color-darken\">99</span></span> </span> </a>\n</li>\n<li>\n<a href=\"#./../../assets/ajax/gallery.html\" class=\"jarvismetro-tile big-cubes bg-color-greenLight\"> <span class=\"iconbox\"> <i class=\"fa fa-picture-o fa-4x\"></i> <span>Gallery </span> </span> </a>\n</li>\n<li>\n<a href=\"#./../../assets/ajax/profile.html\" class=\"jarvismetro-tile big-cubes selected bg-color-pinkDark\"> <span class=\"iconbox\"> <i class=\"fa fa-user fa-4x\"></i> <span>My Profile </span> </span> </a>\n</li>\n</ul>\n</div>\n<!-- END SHORTCUT AREA -->\n\n<!--================================================== -->\n\n<!-- PACE LOADER - turn this on if you want ajax loading to show (caution: uses lots of memory on iDevices)\n<script data-pace-options='{ \"restartOnRequestAfter\": true }' src=\"./../../assets/js/plugin/pace/pace.min.js\"></script>-->\n"
+module.exports = "<header id=\"header\">\n<div id=\"logo-group\">\n\n<!-- PLACE YOUR LOGO HERE -->\n<span id=\"logo\"> <img src=\"./../../assets/img/logo.png\" alt=\"SmartAdmin\"> </span>\n<!-- END LOGO PLACEHOLDER -->\n\n<!-- Note: The activity badge color changes when clicked and resets the number to 0\nSuggestion: You may want to set a flag when this happens to tick off all checked messages / notifications -->\n<span id=\"activity\" class=\"activity-dropdown\"> <i class=\"fa fa-user\"></i> <b class=\"badge\"> 21 </b> </span>\n\n<!-- AJAX-DROPDOWN : control this dropdown height, look and feel from the LESS variable file -->\n<div class=\"ajax-dropdown\">\n\n<!-- the ID links are fetched via AJAX to the ajax container \"ajax-notifications\" -->\n<div class=\"btn-group btn-group-justified\" data-toggle=\"buttons\">\n<label class=\"btn btn-default\">\n<input type=\"radio\" name=\"activity\" id=\"./../../assets/ajax/error404.html\">\nMsgs (14) </label>\n<label class=\"btn btn-default\">\n<input type=\"radio\" name=\"activity\" id=\"./../../assets/ajax/error500.html\">\nnotify (3) </label>\n<label class=\"btn btn-default\">\n<input type=\"radio\" name=\"activity\" id=\"./../../assets/ajax/gallery.html\">\nTasks (4) </label>\n</div>\n\n<!-- notification content -->\n<div class=\"ajax-notifications custom-scroll\">\n\n<div class=\"alert alert-transparent\">\n<h4>Click a button to show messages here</h4>\nThis blank page message helps protect your privacy, or you can show the first message here automatically.\n</div>\n\n<i class=\"fa fa-lock fa-4x fa-border\"></i>\n\n</div>\n<!-- end notification content -->\n\n<!-- footer: refresh area -->\n<span> Last updated on: 12/12/2013 9:43AM\n<button type=\"button\" data-loading-text=\"<i class='fa fa-refresh fa-spin'></i> Loading...\" class=\"btn btn-xs btn-default pull-right\">\n<i class=\"fa fa-refresh\"></i>\n</button> </span>\n<!-- end footer -->\n\n</div>\n<!-- END AJAX-DROPDOWN -->\n</div>\n\n<!-- #PROJECTS: projects dropdown -->\n<div class=\"project-context hidden-xs\">\n\n<span class=\"label\">Projects:</span>\n<span class=\"project-selector dropdown-toggle\" data-toggle=\"dropdown\">Recent projects <i class=\"fa fa-angle-down\"></i></span>\n\n<!-- Suggestion: populate this list with fetch and push technique -->\n<ul class=\"dropdown-menu\">\n<li>\n<a href=\"javascript:void(0);\">Online e-merchant management system - attaching integration with the iOS</a>\n</li>\n<li>\n<a href=\"javascript:void(0);\">Notes on pipeline upgradee</a>\n</li>\n<li>\n<a href=\"javascript:void(0);\">Assesment Report for merchant account</a>\n</li>\n<li class=\"divider\"></li>\n<li>\n<a href=\"javascript:void(0);\"><i class=\"fa fa-power-off\"></i> Clear</a>\n</li>\n</ul>\n<!-- end dropdown-menu-->\n\n</div>\n<!-- end projects dropdown -->\n\n<!-- #TOGGLE LAYOUT BUTTONS -->\n<!-- pulled right: nav area -->\n<div class=\"pull-right\">\n\n<!-- collapse menu button -->\n<div id=\"hide-menu\" class=\"btn-header pull-right\">\n<span> <a data-action=\"toggleMenu\" title=\"Collapse Menu\"><i class=\"fa fa-reorder\"></i></a> </span>\n</div>\n<!-- end collapse menu -->\n\n<!-- #MOBILE -->\n<!-- Top menu profile link : this shows only when top menu is active -->\n<ul id=\"mobile-profile-img\" class=\"header-dropdown-list hidden-xs padding-5\">\n<li class=\"\">\n<a href=\"#\" class=\"dropdown-toggle no-margin userdropdown\" data-toggle=\"dropdown\">\n<img src=\"./../../assets/img/avatars/sunny.png\" class=\"online\" />\n</a>\n<ul class=\"dropdown-menu pull-right\">\n<li>\n<a href=\"javascript:void(0);\" class=\"padding-10 padding-top-0 padding-bottom-0\"><i class=\"fa fa-cog\"></i> Setting</a>\n</li>\n<li class=\"divider\"></li>\n<li>\n<a href=\"#./../../assets/ajax/profile.html\" class=\"padding-10 padding-top-0 padding-bottom-0\"> <i class=\"fa fa-user\"></i> <u>P</u>rofile</a>\n</li>\n<li class=\"divider\"></li>\n<li>\n<a href=\"javascript:void(0);\" class=\"padding-10 padding-top-0 padding-bottom-0\" data-action=\"toggleShortcut\"><i class=\"fa fa-arrow-down\"></i> <u>S</u>hortcut</a>\n</li>\n<li class=\"divider\"></li>\n<li>\n<a href=\"javascript:void(0);\" class=\"padding-10 padding-top-0 padding-bottom-0\" data-action=\"launchFullscreen\"><i class=\"fa fa-arrows-alt\"></i> Full <u>S</u>creen</a>\n</li>\n<li class=\"divider\"></li>\n<li>\n<a href=\"login.html\" class=\"padding-10 padding-top-5 padding-bottom-5\" data-action=\"userLogout\"><i class=\"fa fa-sign-out fa-lg\"></i> <strong><u>L</u>ogout</strong></a>\n</li>\n</ul>\n</li>\n</ul>\n\n<!-- logout button -->\n<div id=\"logout\" class=\"btn-header transparent pull-right\">\n<span> <a href=\"login.html\" title=\"Sign Out\" data-action=\"userLogout\" data-logout-msg=\"You can improve your security further after logging out by closing this opened browser\"><i class=\"fa fa-sign-out\"></i></a> </span>\n</div>\n<!-- end logout button -->\n\n<!-- search mobile button (this is hidden till mobile view port) -->\n<div id=\"search-mobile\" class=\"btn-header transparent pull-right\">\n<span> <a href=\"javascript:void(0)\" title=\"Search\"><i class=\"fa fa-search\"></i></a> </span>\n</div>\n<!-- end search mobile button -->\n\n<!-- #SEARCH -->\n<!-- input: search field -->\n<!--<form action=\"#./../../assets/ajax/search.html\" class=\"header-search pull-right\">-->\n<!--<input id=\"search-fld\" type=\"text\" name=\"param\" placeholder=\"Find reports and more\">-->\n<!--<button type=\"submit\">-->\n<!--<i class=\"fa fa-search\"></i>-->\n<!--</button>-->\n<!--<a href=\"javascript:void(0);\" id=\"cancel-search-js\" title=\"Cancel Search\"><i class=\"fa fa-times\"></i></a>-->\n<!--</form>-->\n<!-- end input: search field -->\n\n<!-- fullscreen button -->\n<div id=\"fullscreen\" class=\"btn-header transparent pull-right\">\n<span> <a href=\"javascript:void(0);\" data-action=\"launchFullscreen\" title=\"Full Screen\"><i class=\"fa fa-arrows-alt\"></i></a> </span>\n</div>\n<!-- end fullscreen button -->\n\n</div>\n<!-- end pulled right: nav area -->\n\n</header>\n<!-- END HEADER -->\n\n<!-- #NAVIGATION -->\n<!-- Left panel : Navigation area -->\n<!-- Note: This width of the aside area can be adjusted through LESS/SASS variables -->\n<aside id=\"left-panel\">\n\n<!-- User info -->\n<div class=\"login-info\">\n<span> <!-- User image size is adjusted inside CSS, it should stay as is -->\n\n<a href=\"javascript:void(0);\" id=\"show-shortcut\" data-action=\"toggleShortcut\">\n<img src=\"./../../assets/img/avatars/sunny.png\" alt=\"me\" class=\"online\" />\n<span>\n{{globalService.getLoggedInUser()}}\n</span>\n<i class=\"fa fa-angle-down\"></i>\n</a>\n\n</span>\n</div>\n<!-- end user info -->\n\n<!-- NAVIGATION : This navigation is also responsive\n\nTo make this navigation dynamic please make sure to link the node\n(the reference to the nav > ul) after page load. Or the navigation\nwill not initialize.\n-->\n  <div class=\"just-padding\">\n\n    <div class=\"list-group list-group-root\">\n\n      <a href=\"#item-1\" class=\"list-group-item\" data-toggle=\"collapse\">\n        <i class=\"fa fa-user\"></i><span class=\"menu-item-parent\">&nbsp;&nbsp;Item 1</span>\n      </a>\n      <div class=\"list-group collapse\" id=\"item-1\">\n\n        <a routerLink=\"/app/dashboard\" routerLinkActive=\"active\" class=\"list-group-item\">show url</a>\n\n        <a routerLink=\"/app/performance\" routerLinkActive=\"active\" class=\"list-group-item\">performance url</a>\n\n      </div>\n\n    </div>\n\n  </div>\n<a href=\"#./../../assets/ajax/difver.html\" class=\"btn btn-primary nav-demo-btn\"><i class=\"fa fa-info-circle\"></i> SmartAdmin Package (187 MB)</a>\n\n\n\n<span class=\"minifyme\" data-action=\"minifyMenu\"> <i class=\"fa fa-arrow-circle-left hit\"></i> </span>\n\n</aside>\n<!-- END NAVIGATION -->\n\n<!-- #MAIN PANEL -->\n<div id=\"main\" role=\"main\">\n\n<!-- RIBBON -->\n<div id=\"ribbon\">\n\n<span class=\"ribbon-button-alignment\">\n<span id=\"refresh\" class=\"btn btn-ribbon\" data-action=\"resetWidgets\" data-title=\"refresh\" rel=\"tooltip\" data-placement=\"bottom\" data-original-title=\"<i class='text-warning fa fa-warning'></i> Warning! This will reset all your widget settings.\" data-html=\"true\" data-reset-msg=\"Would you like to RESET all your saved widgets and clear LocalStorage?\"><i class=\"fa fa-refresh\"></i></span>\n</span>\n\n<!-- breadcrumb -->\n<ol class=\"breadcrumb\">\n<!-- This is auto generated -->\n</ol>\n<!-- end breadcrumb -->\n\n<!-- You can also add more buttons to the\nribbon for further usability\n\nExample below:\n\n<span class=\"ribbon-button-alignment pull-right\" style=\"margin-right:25px\">\n<a href=\"#\" id=\"search\" class=\"btn btn-ribbon hidden-xs\" data-title=\"search\"><i class=\"fa fa-grid\"></i> Change Grid</a>\n<span id=\"add\" class=\"btn btn-ribbon hidden-xs\" data-title=\"add\"><i class=\"fa fa-plus\"></i> Add</span>\n<button id=\"search\" class=\"btn btn-ribbon\" data-title=\"search\"><i class=\"fa fa-search\"></i> <span class=\"hidden-mobile\">Search</span></button>\n</span> -->\n\n</div>\n<!-- END RIBBON -->\n\n<!-- #MAIN CONTENT -->\n<div id=\"content\">\n\n  <div class=\"panel panel-default panelTitle panel-title\">{{globalService.getpageTitle()}}</div>\n\n<router-outlet></router-outlet>\n\n</div>\n\n<!-- END #MAIN CONTENT -->\n\n</div>\n<!-- END #MAIN PANEL -->\n\n<!-- #PAGE FOOTER -->\n<div class=\"page-footer\">\n<div class=\"row\">\n<div class=\"col-xs-12 col-sm-6\">\n<span class=\"txt-color-white\">SmartAdmin 1.9.0 <span class=\"hidden-xs\"> - Web Application Framework</span> © 2017-2019</span>\n</div>\n\n<div class=\"col-xs-6 col-sm-6 text-right hidden-xs\">\n<div class=\"txt-color-white inline-block\">\n<i class=\"txt-color-blueLight hidden-mobile\">Last account activity <i class=\"fa fa-clock-o\"></i> <strong>52 mins ago &nbsp;</strong> </i>\n<div class=\"btn-group dropup\">\n<button class=\"btn btn-xs dropdown-toggle bg-color-blue txt-color-white\" data-toggle=\"dropdown\">\n<i class=\"fa fa-link\"></i> <span class=\"caret\"></span>\n</button>\n<ul class=\"dropdown-menu pull-right text-left\">\n<li>\n<div class=\"padding-5\">\n<p class=\"txt-color-darken font-sm no-margin\">Download Progress</p>\n<div class=\"progress progress-micro no-margin\">\n<div class=\"progress-bar progress-bar-success\" style=\"width: 50%;\"></div>\n</div>\n</div>\n</li>\n<li class=\"divider\"></li>\n<li>\n<div class=\"padding-5\">\n<p class=\"txt-color-darken font-sm no-margin\">Server Load</p>\n<div class=\"progress progress-micro no-margin\">\n<div class=\"progress-bar progress-bar-success\" style=\"width: 20%;\"></div>\n</div>\n</div>\n</li>\n<li class=\"divider\"></li>\n<li >\n<div class=\"padding-5\">\n<p class=\"txt-color-darken font-sm no-margin\">Memory Load <span class=\"text-danger\">*critical*</span></p>\n<div class=\"progress progress-micro no-margin\">\n<div class=\"progress-bar progress-bar-danger\" style=\"width: 70%;\"></div>\n</div>\n</div>\n</li>\n<li class=\"divider\"></li>\n<li>\n<div class=\"padding-5\">\n<button class=\"btn btn-block btn-default\">refresh</button>\n</div>\n</li>\n</ul>\n</div>\n<!-- end btn-group-->\n</div>\n<!-- end div-->\n</div>\n<!-- end col -->\n</div>\n<!-- end row -->\n</div>\n<!-- END FOOTER -->\n\n<!-- #SHORTCUT AREA : With large tiles (activated via clicking user name tag)\nNote: These tiles are completely responsive, you can add as many as you like -->\n<div id=\"shortcut\">\n<ul>\n<li>\n<a href=\"#./../../assets/ajax/inbox.html\" class=\"jarvismetro-tile big-cubes bg-color-blue\"> <span class=\"iconbox\"> <i class=\"fa fa-envelope fa-4x\"></i> <span>Mail <span class=\"label pull-right bg-color-darken\">14</span></span> </span> </a>\n</li>\n<li>\n<a href=\"#./../../assets/ajax/calendar.html\" class=\"jarvismetro-tile big-cubes bg-color-orangeDark\"> <span class=\"iconbox\"> <i class=\"fa fa-calendar fa-4x\"></i> <span>Calendar</span> </span> </a>\n</li>\n<li>\n<a href=\"#./../../assets/ajax/gmap-xml.html\" class=\"jarvismetro-tile big-cubes bg-color-purple\"> <span class=\"iconbox\"> <i class=\"fa fa-map-marker fa-4x\"></i> <span>Maps</span> </span> </a>\n</li>\n<li>\n<a href=\"#./../../assets/ajax/invoice.html\" class=\"jarvismetro-tile big-cubes bg-color-blueDark\"> <span class=\"iconbox\"> <i class=\"fa fa-book fa-4x\"></i> <span>Invoice <span class=\"label pull-right bg-color-darken\">99</span></span> </span> </a>\n</li>\n<li>\n<a href=\"#./../../assets/ajax/gallery.html\" class=\"jarvismetro-tile big-cubes bg-color-greenLight\"> <span class=\"iconbox\"> <i class=\"fa fa-picture-o fa-4x\"></i> <span>Gallery </span> </span> </a>\n</li>\n<li>\n<a href=\"#./../../assets/ajax/profile.html\" class=\"jarvismetro-tile big-cubes selected bg-color-pinkDark\"> <span class=\"iconbox\"> <i class=\"fa fa-user fa-4x\"></i> <span>My Profile </span> </span> </a>\n</li>\n</ul>\n</div>\n<!-- END SHORTCUT AREA -->\n\n<!--================================================== -->\n\n<!-- PACE LOADER - turn this on if you want ajax loading to show (caution: uses lots of memory on iDevices)\n<script data-pace-options='{ \"restartOnRequestAfter\": true }' src=\"./../../assets/js/plugin/pace/pace.min.js\"></script>-->\n"
 
 /***/ }),
 
@@ -401,6 +471,7 @@ module.exports = "<!--The content below is only a placeholder and can be replace
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return HomeComponent; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__("../../../core/esm5/core.js");
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__global_service__ = __webpack_require__("../../../../../src/app/global.service.ts");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__auth_guard_service__ = __webpack_require__("../../../../../src/app/auth-guard.service.ts");
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -412,22 +483,39 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 
 
+
 var HomeComponent = (function () {
-    function HomeComponent(globalService) {
+    function HomeComponent(globalService, authguard) {
         this.globalService = globalService;
+        this.authguard = authguard;
+        this.authorities = [];
     }
     HomeComponent.prototype.ngOnInit = function () {
         this.globalService.setLogin(true);
         console.log("json " + JSON.stringify(this.globalService.getLogin()));
+        this.fetchAuthorities();
+        console.log("Authorities are " + JSON.stringify(this.authorities));
+        // setInter
     };
     ;
+    HomeComponent.prototype.fetchAuthorities = function () {
+        var url = this.globalService.getUSerManagementUrl() + "/user/getDetailsByUsername/" + this.globalService.getLoggedInUser();
+        this.globalService.makeGetApiCall(url, null, function (data) {
+            var _this = this;
+            data.authorities.forEach(function (value) {
+                _this.addAuthority(data.authority);
+            });
+        }, function (error) {
+            console.log("Logging data from the errorhandler " + JSON.stringify(error));
+        });
+    };
     HomeComponent = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["n" /* Component */])({
             selector: 'app-home',
             template: __webpack_require__("../../../../../src/app/home/home.component.html"),
             styles: [__webpack_require__("../../../../../src/app/home/home.component.css")]
         }),
-        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1__global_service__["a" /* GlobalService */]])
+        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1__global_service__["a" /* GlobalService */], __WEBPACK_IMPORTED_MODULE_2__auth_guard_service__["a" /* AuthGuardService */]])
     ], HomeComponent);
     return HomeComponent;
 }());
@@ -550,6 +638,7 @@ module.exports = "<p>\n  performance works!\n</p>\n"
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return PerformanceComponent; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__angular_core__ = __webpack_require__("../../../core/esm5/core.js");
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__global_service__ = __webpack_require__("../../../../../src/app/global.service.ts");
 var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
     var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
@@ -560,10 +649,13 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 
+
 var PerformanceComponent = (function () {
-    function PerformanceComponent() {
+    function PerformanceComponent(globalService) {
+        this.globalService = globalService;
     }
     PerformanceComponent.prototype.ngOnInit = function () {
+        this.globalService.setPageTitle("Performance");
     };
     PerformanceComponent = __decorate([
         Object(__WEBPACK_IMPORTED_MODULE_0__angular_core__["n" /* Component */])({
@@ -571,7 +663,7 @@ var PerformanceComponent = (function () {
             template: __webpack_require__("../../../../../src/app/performance/performance.component.html"),
             styles: [__webpack_require__("../../../../../src/app/performance/performance.component.css")]
         }),
-        __metadata("design:paramtypes", [])
+        __metadata("design:paramtypes", [__WEBPACK_IMPORTED_MODULE_1__global_service__["a" /* GlobalService */]])
     ], PerformanceComponent);
     return PerformanceComponent;
 }());
@@ -613,19 +705,15 @@ var route = [
         canActivate: [__WEBPACK_IMPORTED_MODULE_2__auth_guard_service__["a" /* AuthGuardService */]],
         children: [
             {
-                path: "dashboard",
+                path: "",
                 component: __WEBPACK_IMPORTED_MODULE_5__firstload_firstload_component__["a" /* FirstloadComponent */],
                 children: [
                     {
-                        path: "show",
+                        path: "dashboard",
                         component: __WEBPACK_IMPORTED_MODULE_4__dashboard_dashboard_component__["a" /* DashboardComponent */]
                     },
                     {
                         path: "performance",
-                        component: __WEBPACK_IMPORTED_MODULE_6__performance_performance_component__["a" /* PerformanceComponent */]
-                    },
-                    {
-                        path: "",
                         component: __WEBPACK_IMPORTED_MODULE_6__performance_performance_component__["a" /* PerformanceComponent */]
                     }
                 ]
