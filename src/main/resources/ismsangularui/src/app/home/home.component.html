@@ -183,14 +183,42 @@ will not initialize.
 
     <div class="list-group list-group-root">
 
+      <a href="#Students" class="list-group-item" data-toggle="collapse">
+        <i class="fa fa-user"></i><span class="menu-item-parent">&nbsp;&nbsp;Students</span>
+      </a>
+      <div class="list-group collapse" id="Students">
+
+        <a routerLink="/students/addStudents" routerLinkActive="active" class="list-group-item">Add Students</a>
+
+        <a routerLink="/students/viewStudents" routerLinkActive="active" class="list-group-item">View student(s)</a>
+
+      </div>
+
+    </div>
+    <div class="list-group list-group-root">
+
+      <a href="#RegDetails" class="list-group-item" data-toggle="collapse">
+        <i class="fa fa-user"></i><span class="menu-item-parent">&nbsp;&nbsp;Registration details</span>
+      </a>
+      <div class="list-group collapse" id="RegDetails">
+
+        <a routerLink="/regDetails/addRegDetails" routerLinkActive="active" class="list-group-item">Add Registration Details</a>
+
+        <a routerLink="/regDetails/viewRegDetails" routerLinkActive="active" class="list-group-item">View Registration Details</a>
+
+      </div>
+
+    </div>
+    <div class="list-group list-group-root">
+
       <a href="#item-1" class="list-group-item" data-toggle="collapse">
         <i class="fa fa-user"></i><span class="menu-item-parent">&nbsp;&nbsp;Item 1</span>
       </a>
       <div class="list-group collapse" id="item-1">
 
-        <a routerLink="/app/dashboard" routerLinkActive="active" class="list-group-item">show url</a>
+        <a routerLink="/dashboard" routerLinkActive="active" class="list-group-item">show url</a>
 
-        <a routerLink="/app/performance" routerLinkActive="active" class="list-group-item">performance url</a>
+        <a routerLink="/performance" routerLinkActive="active" class="list-group-item">performance url</a>
 
       </div>
 

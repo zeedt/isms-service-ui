@@ -1,0 +1,57 @@
+<div class="col-md-10 col-md-offset-1">
+
+  <div>
+    <h3>Select the method of upload you will like to do</h3>
+    <select (change)="setuploadType($event.target.value)">
+      <option value="Form">Form</option>
+      <option value="Upload">Upload</option>
+    </select>
+  </div>
+
+  <div *ngIf="getUploadType()=='Upload'">
+    <div>
+      <h3>Select the file to upload. Note: This should only be .xlsx file</h3>
+    </div>
+    <div class="row col-md-12">
+      <div class="form-group col-xs-12 col-sm-12 col-md-5 col-lg-4">
+        <input name="file" (change)="setFileToUpload($event.target.files)" class="form-control" placeholder="Select an excel file"  type="file" />
+      </div>
+      </div>
+    <footer>
+      <input type="button" [disabled]="fileToUpload==null" (click)="postuploadRegistrerationDetails()"  class="btn btn-primary" value="Upload registration Details" />
+    </footer>
+  </div>
+
+  <form [formGroup]="formData" (ngSubmit)="addRegistrationDetails(formData.value)" *ngIf="getUploadType()=='Form'">
+    <div>
+      <h3>Fill the below fields to add registration details for user</h3>
+    </div>
+    <div class="row col-md-12">
+    <div class="form-group col-xs-12 col-sm-12 col-md-5 col-lg-4">
+      <input name="name" class="form-control" placeholder="Enter name here" formControlName="name" type="text" />
+    </div>
+    </div>
+    <div class="row col-md-12">
+    <div class="form-group col-xs-12 col-sm-12 col-md-5 col-lg-4">
+      <input name="regNo" class="form-control" placeholder="Enter registration number here" formControlName="regNo" type="text" />
+    </div>
+    </div>
+    <div class="row col-md-12">
+    <div class="form-group col-xs-12 col-sm-12 col-md-5 col-lg-4">
+      <input name="exptYearOfGrad" class="form-control" placeholder="Enter name here" formControlName="exptYearOfGrad" type="date" />
+    </div>
+    </div>
+    <div class="row col-md-12">
+    <div class="form-group col-xs-12 col-sm-12 col-md-5 col-lg-4">
+      <select name="userType" class="form-control" formControlName="userType">
+        <option value="">--Select user type---</option>
+        <option value="STUDENT">Student</option>
+        <option value="TEACHER">Teacher</option>
+      </select>
+    </div>
+    </div>
+    <footer>
+      <input type="submit" [disabled]="!formData.valid"  class="btn btn-primary" value="Add registration Details" />
+    </footer>
+  </form>
+</div>

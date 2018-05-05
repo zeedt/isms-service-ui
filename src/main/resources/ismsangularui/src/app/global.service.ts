@@ -13,23 +13,23 @@ export class GlobalService {
 
   private userManagementUrl : string = "http://localhost:8011";
 
-  private ismsServiceUrl : string = "http://localhost:7011";
+  private ismsServiceUrl : string = "http://localhost:7071";
 
-  private _pageTitle = "Dashboard";
+  private _pageTitle = "Isms";
 
   private _loggedInUser;
 
-  private authorities : Array<string>  = [];
+  private userauthorities : Array<string>  = [];
 
   public setAuthorities(authorities:Array<string>) {
-    this.authorities = authorities;
+    this.userauthorities = authorities;
   }
   public addAuthority(authority:string) {
-    this.authorities.push(authority);
+    this.userauthorities.push(authority);
   }
 
   public getAuthorities() {
-    return this.authorities;
+    return this.userauthorities;
   }
 
   public getLogin(){

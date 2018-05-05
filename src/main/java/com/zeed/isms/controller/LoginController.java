@@ -34,7 +34,7 @@ public class LoginController {
             return "redirect:http://localhost:3001";
     }
 
-    @RequestMapping({"/", "/app/**", "/signup/**", "/activate/**", "/set-password/**",  "/create-account/**"})
+    @RequestMapping({"/students/**","/regDetails/**", "/app/**", "/signup/**", "/activate/**", "/set-password/**",  "/create-account/**"})
     private String index(Model model, HttpServletRequest request) {
         return "../static/index";
     }

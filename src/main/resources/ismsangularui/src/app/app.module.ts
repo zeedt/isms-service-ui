@@ -8,7 +8,7 @@ import {ReactiveFormsModule} from '@angular/forms';
 import {GlobalService} from './global.service'
 import {AppRouting} from './routing-module'
 import {AuthGuardService} from './auth-guard.service';
-import {HashLocationStrategy, LocationStrategy, PathLocationStrategy} from '@angular/common';
+import {HashLocationStrategy, LocationStrategy, PathLocationStrategy,CommonModule} from '@angular/common';
 import {HttpClientModule} from '@angular/common/http';
 import {LoginService} from './services/loginservices/login.service';
 
@@ -20,7 +20,7 @@ import {LoginService} from './services/loginservices/login.service';
   ],
   imports: [
     BrowserModule,
-    ReactiveFormsModule,
+    ReactiveFormsModule,CommonModule,
     AppRouting,
     HttpClientModule,
     RouterModule.forRoot([
@@ -28,8 +28,8 @@ import {LoginService} from './services/loginservices/login.service';
         path : 'login',
         component : LoginComponent
       },
-      { path: 'app', loadChildren: './routing-module#AppRouting' },
-      { path: '',   redirectTo: '/app/dashboard', pathMatch: 'full' },
+      { path: '', loadChildren: './routing-module#AppRouting' },
+      // { path: '',   redirectTo: '/app/dashboard', pathMatch: 'full' },
 
     ],{useHash : true})
   ],
@@ -38,6 +38,6 @@ import {LoginService} from './services/loginservices/login.service';
     useClass: PathLocationStrategy,
   }],
   bootstrap: [AppComponent],
-  exports : [RouterModule]
+  exports : [RouterModule,CommonModule]
 })
 export class AppModule { }
